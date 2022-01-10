@@ -15,6 +15,7 @@ class SearchReseat
     private $cityIdFrom;
     private $cityIdTo;
     private $dateDeparture;
+    private $comfortCategoryId;
     private $params;
 
     public function __construct($params = [])
@@ -23,6 +24,10 @@ class SearchReseat
         $this->cityIdFrom = $this->params['city_id_from'];
         $this->cityIdTo = $this->params['city_id_to'];
         $this->dateDeparture = $this->params['date_departure']??null;
+
+        if(isset($this->params['comfort_category_id'])) {
+            $this->comfortCategoryId = intval($this->params['comfort_category_id']);
+        }
     }
 
 
@@ -31,6 +36,11 @@ class SearchReseat
         $airportIdsFrom = DB::queryFirstColumn('SELECT id FROM airport WHERE city_id = %i', $this->cityIdFrom);
         $airportIdsTo = DB::queryFirstColumn('SELECT id FROM airport WHERE city_id = %i', $this->cityIdTo);
         $flights = [];
+        $sqlWhereComfortCategoryParts = [];
+
+        if($this->comfortCategoryId) {
+            $sqlWhereComfortCategoryParts[] = "f0.comfort_category_id = ".intval($this->comfortCategoryId);
+        }
 
         for($reseatsMaxIteration = 1; $reseatsMaxIteration < $flightsMax; $reseatsMaxIteration++) {
             $sqlJoins = [];
@@ -45,6 +55,11 @@ class SearchReseat
                     f" . ($tableAliasIndex - 1) . ".airport_id_to = f{$tableAliasIndex}.airport_id_from
                     AND f" . ($tableAliasIndex - 1) . ".airport_id_from != f" . ($tableAliasIndex) . ".airport_id_to 
                     AND f" . ($tableAliasIndex - 1) . ".time_arrival < f" . ($tableAliasIndex) . ".time_departure ";
+
+                if($this->comfortCategoryId) {
+                    $sqlWhereComfortCategoryParts[] = "f{$tableAliasIndex}.comfort_category_id = ".$this->comfortCategoryId;
+                }
+
                 $tableAliasIndex++;
             }
 
@@ -70,6 +85,7 @@ class SearchReseat
             ' . implode("\n", $sqlJoins) . '
             WHERE f0.airport_id_from IN %li
                 AND f0.time_departure LIKE %s' . $sqlWhereAirportTo .'
+                ' . ($sqlWhereComfortCategoryParts ? ' AND ' . implode(' AND ', $sqlWhereComfortCategoryParts) : ''). '
                 ' . ($sqlHaving ? ('HAVING '.implode(' AND ', $sqlHaving)) : ''),
                 $airportIdsFrom,
                 $this->dateDeparture ? $this->dateDeparture.'%' : '%',
