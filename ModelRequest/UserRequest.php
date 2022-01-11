@@ -130,8 +130,10 @@ class UserRequest extends AbstractRequest
 
     public static function decreaseUserMoney($userId, $moneyAmountToDecrease)
     {
+        DB::startTransaction();
         $user = static::getById($userId);
         static::setUserIdMoney($userId, $user['money'] - $moneyAmountToDecrease);
+        DB::commit();
 
         return static::getById($userId);
     }
@@ -139,8 +141,10 @@ class UserRequest extends AbstractRequest
 
     public static function increaseUserMoney($userId, $moneyAmountToDecrease)
     {
+        DB::startTransaction();
         $user = static::getById($userId);
         static::setUserIdMoney($userId, $user['money'] + $moneyAmountToDecrease);
+        DB::commit();
 
         return static::getById($userId);
     }
@@ -148,9 +152,7 @@ class UserRequest extends AbstractRequest
 
     private static function setUserIdMoney($userId, $money)
     {
-        DB::startTransaction();
         DB::update('user', ['money' => $money], 'id = %i', $userId);
-        DB::commit();
     }
 
 
