@@ -18,8 +18,15 @@ class TicketRequest extends AbstractRequest
     public function buy()
     {
         if(!($result = $this->getBoughtTicket())) {
-            DB::insert(static::$tableName, $this->getTicketData());
-            $result = $this->getBoughtTicket();
+            $moneyNeedToPay = $this->getFlightToBuy()['price'];
+
+            if(CurrentUser::getInstance()->canSpend($moneyNeedToPay)) {
+                DB::insert(static::$tableName, $this->getTicketData());
+                CurrentUser::getInstance()->spendMoney($moneyNeedToPay);
+                $result = $this->getBoughtTicket();
+            } else {
+                $result = ['error' => 'Недостаточно денег для покупки билета'];
+            }
         }
 
         return $result;
@@ -28,6 +35,8 @@ class TicketRequest extends AbstractRequest
 
     public function delete()
     {
+        $ticketPrice = DB::queryFirstField('SELECT price FROM ticket WHERE id = %i', $this->params['id']);
+        UserRequest::increaseUserMoney(CurrentUser::getInstance()->getId(), $ticketPrice);
         $removed = DB::query('DELETE FROM '.static::$tableName.' WHERE id = %i', $this->params['id']);
         return ['removed' => $removed];
     }
@@ -35,10 +44,19 @@ class TicketRequest extends AbstractRequest
 
     private function getTicketData()
     {
+        $flight = (new FlightRequest(['id' => $this->params['flight_id']]))->find()[0];
+
         return [
-            'flight_id' => $this->params['flight_id'],
+            'flight_id' => $flight['id'],
+            'price' => $flight['price'],
             'user_id' => CurrentUser::getInstance()->getId(),
         ];
+    }
+
+
+    private function getFlightToBuy()
+    {
+        return DB::queryFirstRow('SELECT * FROM flight WHERE id = %i', $this->params['flight_id']);
     }
 
 

@@ -1,6 +1,11 @@
 <?php
 class SearchReseat
 {
+    const
+        MAX_RESEATS_FLIGHTS = 4, // Максимальное количество доп. перелётов
+        MAX_RESEAT_TIME_MINUTES = 60*12; // Максимальное ожидание пересадки
+
+
     private static $FIELD_NAMES = [
         'id',
         'airport_id_from',
@@ -31,7 +36,7 @@ class SearchReseat
     }
 
 
-    public function findReseats($flightsMax)
+    public function findReseats()
     {
         $airportIdsFrom = DB::queryFirstColumn('SELECT id FROM airport WHERE city_id = %i', $this->cityIdFrom);
         $airportIdsTo = DB::queryFirstColumn('SELECT id FROM airport WHERE city_id = %i', $this->cityIdTo);
@@ -42,7 +47,7 @@ class SearchReseat
             $sqlWhereComfortCategoryParts[] = "f0.comfort_category_id = ".intval($this->comfortCategoryId);
         }
 
-        for($reseatsMaxIteration = 1; $reseatsMaxIteration < $flightsMax; $reseatsMaxIteration++) {
+        for($reseatsMaxIteration = 1; $reseatsMaxIteration < self::MAX_RESEATS_FLIGHTS; $reseatsMaxIteration++) {
             $sqlJoins = [];
             $tableAliasIndex = 1;
             $fieldNamesForSumPrice[] = "f0.price";
@@ -54,7 +59,8 @@ class SearchReseat
                 $sqlJoins[] = "JOIN flight f{$tableAliasIndex} ON
                     f" . ($tableAliasIndex - 1) . ".airport_id_to = f{$tableAliasIndex}.airport_id_from
                     AND f" . ($tableAliasIndex - 1) . ".airport_id_from != f" . ($tableAliasIndex) . ".airport_id_to 
-                    AND f" . ($tableAliasIndex - 1) . ".time_arrival < f" . ($tableAliasIndex) . ".time_departure ";
+                    AND f" . ($tableAliasIndex - 1) . ".time_arrival < f" . ($tableAliasIndex) . ".time_departure 
+                    AND TIMESTAMPDIFF(minute, f" . ($tableAliasIndex - 1) . ".time_arrival, f{$tableAliasIndex}.time_departure) < ". static::MAX_RESEAT_TIME_MINUTES;
 
                 if($this->comfortCategoryId) {
                     $sqlWhereComfortCategoryParts[] = "f{$tableAliasIndex}.comfort_category_id = ".$this->comfortCategoryId;

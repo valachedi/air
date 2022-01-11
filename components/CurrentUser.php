@@ -72,6 +72,22 @@ class CurrentUser
     }
 
 
+    public function canSpend($moneyWantToSpend)
+    {
+        return $this->user['money'] >= $moneyWantToSpend;
+    }
+
+
+    public function spendMoney($moneyToSpend)
+    {
+        if($this->canSpend($moneyToSpend)) {
+            UserRequest::decreaseUserMoney($this->getId(), $moneyToSpend);
+        }
+
+        return $this;
+    }
+
+
     private function generateToken()
     {
         return md5(microtime(true));

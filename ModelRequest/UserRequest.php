@@ -32,7 +32,7 @@ class UserRequest extends AbstractRequest
 
     public function getOwn()
     {
-        return DB::queryFirstRow('SELECT name,login,email FROM user WHERE token = %s', CurrentUser::getInstance()->getToken());
+        return DB::queryFirstRow('SELECT name,login,email,money FROM user WHERE token = %s', CurrentUser::getInstance()->getToken());
     }
 
     public function echoPhotoContent()
@@ -125,6 +125,38 @@ class UserRequest extends AbstractRequest
         }
 
         return $result;
+    }
+
+
+    public static function decreaseUserMoney($userId, $moneyAmountToDecrease)
+    {
+        $user = static::getById($userId);
+        static::setUserIdMoney($userId, $user['money'] - $moneyAmountToDecrease);
+
+        return static::getById($userId);
+    }
+
+
+    public static function increaseUserMoney($userId, $moneyAmountToDecrease)
+    {
+        $user = static::getById($userId);
+        static::setUserIdMoney($userId, $user['money'] + $moneyAmountToDecrease);
+
+        return static::getById($userId);
+    }
+
+
+    private static function setUserIdMoney($userId, $money)
+    {
+        DB::startTransaction();
+        DB::update('user', ['money' => $money], 'id = %i', $userId);
+        DB::commit();
+    }
+
+
+    public static function getById($userId)
+    {
+        return (new UserRequest(['id' => $userId]))->find()[0];
     }
 
 

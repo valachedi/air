@@ -58,7 +58,7 @@ class FlightRequest extends AbstractRequest
 
         $flights = call_user_func_array('DB::query', array_merge([$query], $queryValues));
 
-        if(@$this->params['reseats_max']) {
+        if(@$this->params['with_reseats'] == 1) {
             $flights = array_merge($flights, $this->findWithReseats());
         }
 
@@ -70,7 +70,7 @@ class FlightRequest extends AbstractRequest
 
     private function findWithReseats()
     {
-        return (new SearchReseat($this->params))->findReseats($this->params['reseats_max']+1);
+        return (new SearchReseat($this->params))->findReseats();
     }
 
 
