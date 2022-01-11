@@ -118,25 +118,25 @@ class SearchReseat
     /**
      * Создание перелётов из массивов с элементами вида:
      * ["f0_airport_id_to"]=>
-        string(1) "1"
-        ["f0_time_departure"]=>
-        string(19) "2022-02-22 18:34:00"
-        ["f0_time_arrival"]=>
-        string(19) "2022-02-22 22:48:00"
-        ["f0_airplane_id"]=>
-        string(1) "1"
-        ["f1_id"]=>
-        string(1) "1"
-        ["f1_airport_id_from"]=>
-        string(1) "1"
-        ["f1_airport_id_to"]=>
-        string(1) "2"
-        ["f1_time_departure"]=>
-        string(19) "2022-01-20 13:56:00"
-        ["f1_time_arrival"]=>
-        string(19) "2022-02-22 18:04:00"
-        ["f1_airplane_id"]=>
-        string(1) "1"
+    string(1) "1"
+    ["f0_time_departure"]=>
+    string(19) "2022-02-22 18:34:00"
+    ["f0_time_arrival"]=>
+    string(19) "2022-02-22 22:48:00"
+    ["f0_airplane_id"]=>
+    string(1) "1"
+    ["f1_id"]=>
+    string(1) "1"
+    ["f1_airport_id_from"]=>
+    string(1) "1"
+    ["f1_airport_id_to"]=>
+    string(1) "2"
+    ["f1_time_departure"]=>
+    string(19) "2022-01-20 13:56:00"
+    ["f1_time_arrival"]=>
+    string(19) "2022-02-22 18:04:00"
+    ["f1_airplane_id"]=>
+    string(1) "1"
      * где f0_, f1_ = это данные пересадочных перелётов
      * @param $sqlFlightsData
      */
